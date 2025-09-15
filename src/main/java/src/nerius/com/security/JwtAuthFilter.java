@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import src.nerius.com.security.service.JwtService;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -24,23 +25,31 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+            String token = authHeader.substring(7); // <-- 7, не 6
+            System.out.println("JWT received: " + token);
+
             try {
                 Claims claims = jwtService.parseToken(token);
-                String subject = claims.getSubject();
+                System.out.println("JWT valid, subject: " + claims.getSubject());
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(subject, null, null);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken(claims.getSubject(), null, List.of())
+                );
             } catch (Exception e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                System.out.println("JWT invalid: " + e.getMessage());
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT");
                 return;
             }
+        } else {
+            System.out.println("No Authorization header or does not start with Bearer");
         }
 
         filterChain.doFilter(request, response);
     }
+
 }

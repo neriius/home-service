@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Device Flyleaf</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        button { padding: 10px 20px; font-size: 16px; }
+        #log { margin-top: 20px; border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+        .command { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+<h1>Device Flyleaf (Localhost)</h1>
+<button id="sendTestBtn">Send Test Command</button>
+<div id="log"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script>
+    const logDiv = document.getElementById('log');
+
+    // WebSocket + STOMP
+    const socket = new SockJS('/ws'); // путь WebSocket из конфигурации
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function(frame) {
+        console.log('Connected: ' + frame);
+        stompClient.subscribe('/deviceCommands', function(message) {
+            const msgBody = JSON.parse(message.body);
+            const div = document.createElement('div');
+            div.classList.add('command');
+            div.textContent = `Device: ${msgBody.device.name}, Commands: ${JSON.stringify(msgBody.commands)}`;
+            logDiv.appendChild(div);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        });
+    });
+
+    // Кнопка для тестовой команды
+    document.getElementById('sendTestBtn').addEventListener('click', () => {
+        fetch('/api/ws/sendTestCommand', { method: 'POST' })
+            .then(res => res.text())
+            .then(console.log)
+            .catch(console.error);
+    });
+</script>
+</body>
+</html>

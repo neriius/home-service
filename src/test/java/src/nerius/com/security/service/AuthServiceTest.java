@@ -37,7 +37,7 @@ class AuthServiceTest {
 
         when(userRepositoryController.existsByLogin(dto.login())).thenReturn(false);
         when(passwordEncoder.encode(dto.password())).thenReturn("hashedPassword");
-        when(jwtService.generateToken(null, "USER", dto.login())).thenReturn("jwtToken");
+        when(jwtService.generateClientToken(null, "USER", dto.login())).thenReturn("jwtToken");
 
         ResponseEntity<AuthResponseDto> response = authService.registerUser(dto);
 
@@ -73,7 +73,7 @@ class AuthServiceTest {
 
         when(userRepositoryController.getUserByLogin(dto.login())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(dto.password(), mockUser.getPassword())).thenReturn(true);
-        when(jwtService.generateToken(null, "USER", dto.login())).thenReturn("jwtToken");
+        when(jwtService.generateClientToken(null, "USER", dto.login())).thenReturn("jwtToken");
 
         ResponseEntity<AuthResponseDto> response = authService.loginUser(dto);
 

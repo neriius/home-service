@@ -40,7 +40,7 @@ public class AuthService {
 
         userRepositoryController.createUser(user);
 
-        String token = jwtService.generateToken(null, "USER", user.getLogin());
+        String token = jwtService.generateClientToken(user.getLogin());
         return ResponseEntity.ok(new AuthResponseDto(token));
     }
 
@@ -54,12 +54,12 @@ public class AuthService {
                     .body(new AuthResponseDto(""));
         }
 
-        String token = jwtService.generateToken(null, "USER", user.getLogin());
+        String token = jwtService.generateClientToken(user.getLogin());
         return ResponseEntity.ok(new AuthResponseDto(token));
     }
 
     public ResponseEntity<AuthResponseDto> loginDevice(DeviceLoginDto dto) {
-        String token = jwtService.generateToken(dto.deviceAuthKey(), "DEVICE", dto.name());
+        String token = jwtService.generateDeviceToken(dto.deviceAuthKey());
         return ResponseEntity.ok(new AuthResponseDto(token));
     }
 

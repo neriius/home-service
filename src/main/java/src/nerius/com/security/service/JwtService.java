@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,19 +18,12 @@ public class JwtService {
         this.deviceAuthKey = deviceAuthKey;
     }
 
-    public String generateToken(@Nullable String authKeyForDevices, String type, String name) {
+    public String generateClientToken(String name) {
         Date now = new Date();
-
-        if (type.equals("Device")) {
-            if (deviceAuthKey.equals(authKeyForDevices)){
-                return "";
-            }
-        }
-
 
         return Jwts.builder()
                 .setSubject(name)
-                .claim("type", type)
+                .claim("type", ConnectionType.CLIENT)
                 .setIssuedAt(now)
                 .signWith(Keys.hmacShaKeyFor(deviceAuthKey.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
@@ -43,5 +35,22 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public String generateDeviceToken(String authKeyForDevices) {
+        if (!deviceAuthKey.equals(authKeyForDevices)){
+            return "";
+        }
+
+        return Jwts.builder()
+                .setSubject("DEVICE")
+                .claim("type", ConnectionType.DEVICE)
+                .setIssuedAt(new Date())
+                .signWith(Keys.hmacShaKeyFor(deviceAuthKey.getBytes()), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    enum ConnectionType {
+        DEVICE, CLIENT
     }
 }

@@ -24,9 +24,13 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()  // регистрация и логин открыты
-                        .anyRequest().authenticated()                // всё остальное требует JWT
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/ws/**", "/flyleaf/**", "/", "/index.html").permitAll()
+                        .requestMatchers("/api/ws/sendTestCommand").permitAll()  // <--- добавлено
+
+                        .anyRequest().permitAll()                // всё остальное требует JWT
                 )
+
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
